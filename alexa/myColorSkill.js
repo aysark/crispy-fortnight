@@ -8,6 +8,8 @@
  * For additional samples, visit the Alexa Skills Kit Getting Started guide at
  * http://amzn.to/1LGWsLG
  */
+
+
 // --------------- Helpers that build all of the responses -----------------------
 
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
@@ -46,12 +48,12 @@ function getWelcomeResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
     const sessionAttributes = {};
     const cardTitle = 'Welcome';
-    const speechOutput = 'Welcome to the Road Condition Reporting tool. ' +
-        'Please tell me what you are reporting by saying, i see black ice on the road, or there is an accident or obstruction ahead.';
+    const speechOutput = 'Welcome to the Alexa Skills Kit sample. ' +
+        'Please tell me your favorite color by saying, my favorite color is red';
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
-    const repromptText = 'Please tell me the road conditions by saying, ' +
-        'i see black ice on the road or there is an accident ahead.';
+    const repromptText = 'Please tell me your favorite color by saying, ' +
+        'my favorite color is red';
     const shouldEndSession = false;
 
     callback(sessionAttributes,
@@ -60,68 +62,63 @@ function getWelcomeResponse(callback) {
 
 function handleSessionEndRequest(callback) {
     const cardTitle = 'Session Ended';
-    const speechOutput = 'Thank you for making our roads safe. Have a wonderful day!';
+    const speechOutput = 'Thank you for trying the Alexa Skills Kit sample. Have a nice day!';
     // Setting this to true ends the session and exits the skill.
     const shouldEndSession = true;
 
     callback({}, buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
 }
 
-function createRoadConditionAttributes(roadCondition) {
+function createFavoriteColorAttributes(favoriteColor) {
     return {
-        roadCondition,
+        favoriteColor,
     };
 }
 
 /**
- * Sets the road conditions in the session and prepares the speech to reply to the user.
+ * Sets the color in the session and prepares the speech to reply to the user.
  */
-function setRoadConditionsInSession(intent, session, callback) {
+function setColorInSession(intent, session, callback) {
     const cardTitle = intent.name;
-    const roadConditionSlot = intent.slots.roadCondition;
-    console.log('road condition slot', roadConditionSlot);
+    const favoriteColorSlot = intent.slots.Color;
     let repromptText = '';
     let sessionAttributes = {};
     const shouldEndSession = false;
     let speechOutput = '';
 
-    if (roadConditionSlot) {
-        const roadCondition = roadConditionSlot.value;
-        sessionAttributes = createRoadConditionAttributes(roadCondition);
-        speechOutput = `Got it.  There is likely a ${roadCondition} up ahead.` +
-            "Thanks for keeping the roads safer!" +
-            " You can ask me about current road conditions by saying, what are current road conditions like?";
-        repromptText = speechOutput;
-
-        // TODO: make post request to servers
+    if (favoriteColorSlot) {
+        const favoriteColor = favoriteColorSlot.value;
+        sessionAttributes = createFavoriteColorAttributes(favoriteColor);
+        speechOutput = `I now know your favorite color is ${favoriteColor}. You can ask me ` +
+            "your favorite color by saying, what's my favorite color?";
+        repromptText = "You can ask me your favorite color by saying, what's my favorite color?";
     } else {
-        speechOutput = "I'm not sure what kind of road condition that was. Please try again.";
-        repromptText = "I'm not sure what kind of road condition that was. You can tell me your " +
-            'current road conditions by saying, i see black ice on the road or there is an accident or obstruction ahead.';
+        speechOutput = "I'm not sure what your favorite color is. Please try again.";
+        repromptText = "I'm not sure what your favorite color is. You can tell me your " +
+            'favorite color by saying, my favorite color is red';
     }
-    console.log('session attr store', sessionAttributes);
 
     callback(sessionAttributes,
          buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
 }
 
-function getRoadConditionsFromSession(intent, session, callback) {
-    let roadCondition;
+function getColorFromSession(intent, session, callback) {
+    let favoriteColor;
     const repromptText = null;
     const sessionAttributes = {};
     let shouldEndSession = false;
     let speechOutput = '';
-    console.log('session attr', session.attributes);
+
     if (session.attributes) {
-        roadCondition = session.attributes.roadCondition;
+        favoriteColor = session.attributes.favoriteColor;
     }
-    // TODO: retrieve from servers
-    if (roadCondition) {
-        speechOutput = `The current road conditions are ${roadCondition}. Drive carefully!`;
+
+    if (favoriteColor) {
+        speechOutput = `Your favorite color is ${favoriteColor}. Goodbye.`;
         shouldEndSession = true;
     } else {
-        speechOutput = "I'm not sure what the road conditions are, looks like you're first here!";
-        shouldEndSession = true;
+        speechOutput = "I'm not sure what your favorite color is, you can say, my favorite color " +
+            ' is red';
     }
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
@@ -161,10 +158,10 @@ function onIntent(intentRequest, session, callback) {
     const intentName = intentRequest.intent.name;
 
     // Dispatch to your skill's intent handlers
-    if (intentName === 'ReportRoadConditionIntent') {
-        setRoadConditionsInSession(intent, session, callback);
-    } else if (intentName === 'WhatAreRoadConditionsIntent') {
-        getRoadConditionsFromSession(intent, session, callback);
+    if (intentName === 'MyColorIsIntent') {
+        setColorInSession(intent, session, callback);
+    } else if (intentName === 'WhatsMyColorIntent') {
+        getColorFromSession(intent, session, callback);
     } else if (intentName === 'AMAZON.HelpIntent') {
         getWelcomeResponse(callback);
     } else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
